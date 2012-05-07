@@ -110,6 +110,7 @@ class pDijkstra {
         }
         
         $aPath[] = $this->startVertex;
+        $this->startVertex->setPotential(0, $this->startVertex);
         $path = new pGraphPath(new pList(array_reverse($aPath)));
         return $path;
     }
