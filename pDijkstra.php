@@ -95,7 +95,7 @@ class pDijkstra {
             $this->end($end);
         }
         
-        $this->calculatePotentials($this->startVertex, $this->endVertex);
+        $this->calculatePotentials($this->startVertex);
         
         $aPath = array();
         $vertex = $this->endVertex;
@@ -118,18 +118,23 @@ class pDijkstra {
     /**
      * Calculate the potentials to every other vertex from the start vertex
      * @param IVertex $vertex The vertex to calculate potentials
-     * @param IVertex $end The destination vertex
      * @since 1.0-sofia
      */
-    private function calculatePotentials($vertex, $end){
+    private function calculatePotentials($vertex){
         $connections = $vertex->connections();
-        $sorted = array_flip($connections->toArray());
-        krsort($sorted);
-        foreach($connections as $id => $cost){
+        $sorted = $connections->toArray();
+        arsort($sorted);
+        
+        // mark the vector as you have already passed by
+        $vertex->mark();
+        
+        foreach($sorted as $id => $cost){
             /* @var $connection IVertex */
             $connection = $this->graph->get($id);
             $connection->setPotential($vertex->potential() + $cost, $vertex);
-            
+            if(!$connection->passed()){
+                $this->calculatePotentials($connection);
+            }
             foreach($this->paths as $path){
                 /* @var $path pList */
                 $last = $path->last();
@@ -138,16 +143,6 @@ class pDijkstra {
                             array_merge($path->toArray(), array($connection))
                         ));
                 }
-            }
-        }
-        
-        // mark the vector as you have already passed by
-        $vertex->mark();
-        
-        foreach($sorted as $id){
-            $nextVertex = $this->graph->get($id);
-            if(!$nextVertex->passed()){
-                $this->calculatePotentials($nextVertex, $end);
             }
         }
     }
