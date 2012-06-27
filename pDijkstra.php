@@ -1,6 +1,7 @@
 <?php
 pload('packfire.collection.pList');
 pload('pGraphPath');
+pload('pVertexSorter');
 
 /**
  * Resolve and find a path between the starting and ending vertices in a graph.
@@ -35,14 +36,7 @@ class pDijkstra {
     private $endVertex;
     
     /**
-     * The list of paths found
-     * @var pList 
-     * @since 1.0-sofia
-     */
-    private $paths = null;
-    
-    /**
-     * Create a new Dijkstra object
+     * Create a new pDijkstra object
      * @param pGraph $graph The graph to work and solve
      * @since 1.0-sofia
      */
@@ -62,8 +56,6 @@ class pDijkstra {
      */
     public function start($start){
         $this->startVertex = $start;
-        $this->paths = new pList();
-        $this->paths->add(new pList(array($start)));
         return $this;
     }
     
@@ -95,7 +87,8 @@ class pDijkstra {
             $this->end($end);
         }
         
-        $this->calculatePotentials($this->startVertex);
+        $this->startVertex->setPotential(0, $this->startVertex);
+        $this->calculate();
         
         $aPath = array();
         $vertex = $this->endVertex;
@@ -110,41 +103,73 @@ class pDijkstra {
         }
         
         $aPath[] = $this->startVertex;
-        $this->startVertex->setPotential(0, $this->startVertex);
+        
         $path = new pGraphPath(new pList(array_reverse($aPath)));
         return $path;
     }
     
     /**
-     * Calculate the potentials to every other vertex from the start vertex
-     * @param IVertex $vertex The vertex to calculate potentials
+     * Get the vertex with the least potential that has been yet to pass
+     * @param array $map (reference) The map to get the vertex from
+     * @return IVertex Returns the vertex with the least potential if found, or null otherwise
      * @since 1.0-sofia
      */
-    private function calculatePotentials($vertex){
-        $connections = $vertex->connections();
-        $sorted = $connections->toArray();
-        arsort($sorted);
+    private function getLeastPotential(&$map){
+        $leastPotential = null; 
         
-        // mark the vector as you have already passed by
-        $vertex->mark();
-        
-        foreach($sorted as $id => $cost){
-            /* @var $connection IVertex */
-            $connection = $this->graph->get($id);
-            $connection->setPotential($vertex->potential() + $cost, $vertex);
-            if(!$connection->passed()){
-                $this->calculatePotentials($connection);
+        /* @var $vertex IVertex */
+        $vertex = reset($map);
+        if($vertex && $vertex->potential() !== null && ($leastPotential == null || $vertex->potential() < $leastPotential->potential())){
+            $leastPotential = $vertex;
+        }
+        return $leastPotential;
+    }
+    
+    /**
+     * Perform the reordering of a vertex
+     * @param array $map (reference) The array reference to perform the re-ordering on.
+     * @param IVertex $vertex The vertex to re-order based on the potential
+     * @since 1.0-sofia
+     */
+    private function reorder(&$map, $vertex){
+        if(array_key_exists($vertex->id(), $map)){
+            unset($map[$vertex->id()]);
+            reset($map);
+            $point = 0;
+            while(($next = current($map)) !== false && $next->potential() !== null && $next->potential() < $vertex->potential()){
+                ++$point;
+                next($map);
             }
-            foreach($this->paths as $path){
-                /* @var $path pList */
-                $last = $path->last();
-                if($last && $last->id() == $vertex->id()){
-                    $this->paths->add(new pList(
-                            array_merge($path->toArray(), array($connection))
-                        ));
-                }
-            }
+            $map = array_slice($map, 0, $point, true) + array($vertex->id() => $vertex) + array_slice($map, $point, null, true);
         }
     }
     
+    /**
+     * Perform the calculation for the vertices
+     * @since 1.0-sofia 
+     */
+    private function calculate(){
+        $map = $this->graph->vertices()->toArray();
+        
+        $sorter = new pVertexSorter();
+        $sorter->sort($map);
+        
+        $remaining = count($map);
+        while($remaining > 0){
+            $vertex = $this->getLeastPotential($map);
+            if($vertex == null){
+                break;
+            }
+            unset($map[$vertex->id()]);
+            --$remaining;
+            $neighbours = $vertex->connections();
+
+            foreach($neighbours as $id => $cost){
+                /* @var $neighbour IVertex */
+                $neighbour = $this->graph->get($id);
+                $neighbour->setPotential($vertex->potential() + $cost, $vertex);
+                $this->reorder($map, $neighbour);
+            }
+        }
+    }
 }

@@ -12,25 +12,11 @@
 interface IVertex {
     
     /**
-     * Mark that the vertex has been passed by before 
-     * @since 1.0-sofia
-     */
-    public function mark();
-    
-    /**
      * Get the vertex that best came here so far
      * @return IVertex Returns the vertex that best came here
      * @since 1.0-sofia
      */
     public function from();
-    
-    /**
-     * Check if this vertex has been passed by before
-     * @return boolean Returns true if the vertex has been passed by before,
-     *              false otherwise.
-     * @since 1.0-sofia
-     */
-    public function passed();
     
     /**
      * Get the identifier of this vertex

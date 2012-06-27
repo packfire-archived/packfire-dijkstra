@@ -3,6 +3,8 @@ pload('IVertex');
 pload('packfire.collection.pMap');
 
 /**
+ * pVertex
+ * 
  * A vertex on the graph
  *
  * @author Sam-Mauris Yong / mauris@hotmail.sg
@@ -28,13 +30,6 @@ class pVertex implements IVertex {
     private $connections;
     
     /**
-     * Flags whether this vertex has been passed by before or not
-     * @var boolean
-     * @since 1.0-sofia
-     */
-    private $passed = false;
-    
-    /**
      * The potential of the best path to this vertex so far
      * @var integer|double 
      * @since 1.0-sofia
@@ -49,7 +44,7 @@ class pVertex implements IVertex {
     private $bestFrom;
     
     /**
-     * Create a new Vertex object
+     * Create a new pVertex object
      * @param string|integer $id The unique identifier of the vertex in the graph
      * @since 1.0-sofia
      */
@@ -89,24 +84,6 @@ class pVertex implements IVertex {
      */
     public function connections(){
         return $this->connections;
-    }
-    
-    /**
-     * Check if this vertex has been passed by before
-     * @return boolean Returns true if the vertex has been passed by before,
-     *              false otherwise.
-     * @since 1.0-sofia
-     */
-    public function passed(){
-        return $this->passed;
-    }
-    
-    /**
-     * Mark that the vertex has been passed by before 
-     * @since 1.0-sofia
-     */
-    public function mark(){
-        $this->passed = true;
     }
     
     /**

@@ -2,6 +2,8 @@
 pload('pDijkstra');
 
 /**
+ * pGraph class
+ * 
  * A graph representation
  *
  * @author Sam-Mauris Yong / mauris@hotmail.sg
