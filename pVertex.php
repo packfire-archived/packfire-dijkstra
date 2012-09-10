@@ -1,6 +1,7 @@
 <?php
 pload('IVertex');
 pload('packfire.collection.pMap');
+pload('packfire.exception.pInvalidArgumentException');
 
 /**
  * pVertex
@@ -62,7 +63,7 @@ class pVertex implements IVertex {
      */
     public function connect($vertex, $cost){
         if($this == $vertex || $this->id() == $vertex->id()){
-            throw new Exception();
+            throw new pInvalidArgumentException('A vertex cannot connect to itself');
         }
         $this->connections[$vertex->id()] = $cost;
     }
