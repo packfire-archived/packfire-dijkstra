@@ -59,11 +59,17 @@ class pVertex implements IVertex {
      * @param IVertex $vertex The vertex to connect to
      * @param integer|double $cost The cost of moving from this vertex to the
      *                  connecting vertex.
+     * @throws pInvalidArgumentException Thrown when $vertex is an instance of itself.
      * @since 1.0-sofia
      */
     public function connect($vertex, $cost){
         if($this == $vertex || $this->id() == $vertex->id()){
-            throw new pInvalidArgumentException('A vertex cannot connect to itself');
+            throw new pInvalidArgumentException(
+                    'pVertex::connect',
+                    'vertex',
+                    'not an instance of itself',
+                    'pVertex#' . $vertex->id()
+                );
         }
         $this->connections[$vertex->id()] = $cost;
     }
